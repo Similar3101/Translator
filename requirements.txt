@@ -1,0 +1,2 @@
+PyQt5==5.15.4
+googletrans==3.1.0a0
