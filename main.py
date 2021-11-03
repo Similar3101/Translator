@@ -1,18 +1,18 @@
 from PyQt5 import uic
 from PyQt5.QtWidgets import QWidget, QApplication, QTableWidgetItem
-from PyQt5.QtWidgets import QMainWindow, QInputDialog
-from googletrans import Translator as trans, constants
+from PyQt5.QtWidgets import QMainWindow, QInputDialog, QMessageBox
+from googletrans import Translator, constants
 import sys
 import sqlite3
 import random
 from PyQt5.QtGui import QPixmap
 
 
-class Translator(QMainWindow):
+class Translator_new(QMainWindow):
     def __init__(self):
         super().__init__()
         uic.loadUi('Translator.ui', self)
-        self.Button.clicked.connect(self.translate)
+        self.BtnTranslate.clicked.connect(self.translate)
 
         self.choice_from_lang.clicked.connect(self.change_from_lang)
         self.choice_to_lang.clicked.connect(self.change_to_lang)
@@ -30,10 +30,13 @@ class Translator(QMainWindow):
     def translate(self):
         try:
             a1, a2 = self.choice_from_lang.text(), self.choice_to_lang.text()
+            a1, a2 = self.language[a1], self.language[a2]
             b = self.text_from_lang.toPlainText()
-            t = trans()
+            t = Translator()
             t = t.translate(b, src=a1, dest=a2)
             self.text_to_lang.setPlainText(t.text)
+            print(a1, a2, b, t, t.text, sep='\\ ')
+            print(self.btnSaving.checkState())
             if self.btnSaving.checkState():
                 self.cun = self.con.cursor()
                 self.num += 1
@@ -154,7 +157,7 @@ class Quiz(QMainWindow):
             self.jpg.hide()
 
             self.Choicebtn.clicked.connect(self.Change)
-            self.ok.clicked.connect(self.OK)
+            self.ok.clicked.connect(self.Return)
             self.End_Quiz.clicked.connect(self.end)
             self.Start_Quiz.clicked.connect(self.start)
 
@@ -169,19 +172,27 @@ class Quiz(QMainWindow):
         b = []
         a = cur.execute('''
 SELECT DISTINCT to_Lang, from_Lang FROM History;''').fetchall()
-        for res in a:
-            print(res)
-            b.append(' - '.join(res))
-        self.name, ok_pressed = QInputDialog.getItem(self,
-                                                     'выбор',
-                                                     'С какого на какой язык?',
-                                                     b,
-                                                     False)
-        if ok_pressed:
-            self.Start_Quiz.show()
-            self.name = self.name.split(' - ')
-            self.ToTranslate.setText(self.name[0])
-            self.FromTranslate.setText(self.name[1])
+        if a:
+            for res in a:
+                print(res)
+                b.append(' - '.join(res))
+            self.name, ok_pressed = QInputDialog.getItem(self,
+                                                         'выбор',
+                                                         'С какого на какой язык?',
+                                                         b,
+                                                         False)
+            if ok_pressed:
+                self.Start_Quiz.show()
+                self.name = self.name.split(' - ')
+                self.ToTranslate.setText(self.name[0])
+                self.FromTranslate.setText(self.name[1])
+        else:
+            error = QMessageBox()
+            error.setText('для начала нужно что-нибудь перевести')
+            error.setWindowTitle('Error')
+            error.setIcon(QMessageBox.Warning)
+            error.setStandardButtons(QMessageBox.Ok)
+            error.exec_()
 
     def start(self):
         try:
@@ -189,8 +200,10 @@ SELECT DISTINCT to_Lang, from_Lang FROM History;''').fetchall()
             a = cur.execute('''
 SELECT DISTINCT text_to_Lang, text_from_Lang FROM History
 WHERE to_Lang = ? AND from_Lang = ?;''', tuple(self.name)).fetchall()
-            self.correct_res = random.choice(a)[1]
-            self.TranslatableText.setText(random.choice(a)[0])
+            b, c = random.choice(a)
+            self.correct_output = ''.join(b.split('\n'))
+            self.correct_res = ''.join(c.split('\n'))
+            self.TranslatableText.setText(self.correct_output)
             self.Result.setText('')
             self.End_Quiz.show()
             self.Start_Quiz.hide()
@@ -199,7 +212,7 @@ WHERE to_Lang = ? AND from_Lang = ?;''', tuple(self.name)).fetchall()
 
     def end(self):
         try:
-            if self.correct_res == self.Result.text():
+            if self.correct_res[1] == self.Result.text():
                 jpg = QPixmap('1.jpg')
             else:
                 jpg = QPixmap('2.jpg')
@@ -209,7 +222,6 @@ WHERE to_Lang = ? AND from_Lang = ?;''', tuple(self.name)).fetchall()
             self.End_Quiz.hide()
             self.Start_Quiz.hide()
             self.Result.hide()
-            self.Instruction.hide()
             self.label_2.hide()
             self.label_3.hide()
             self.ToTranslate.hide()
@@ -219,14 +231,12 @@ WHERE to_Lang = ? AND from_Lang = ?;''', tuple(self.name)).fetchall()
         except Exception as e:
             print(e)
 
-    def OK(self):
+    def Return(self):
         self.jpg.hide()
         self.ok.hide()
         self.Choicebtn.show()
-        self.End_Quiz.show()
         self.Start_Quiz.show()
         self.Result.show()
-        self.Instruction.show()
         self.label_2.show()
         self.label_3.show()
         self.ToTranslate.show()
@@ -242,6 +252,6 @@ WHERE to_Lang = ? AND from_Lang = ?;''', tuple(self.name)).fetchall()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = Translator()
+    ex = Translator_new()
     ex.show()
     sys.exit(app.exec())
