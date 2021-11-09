@@ -206,12 +206,12 @@
     <property name="title">
      <string>|||</string>
     </property>
-    <addaction name="History"/>
-    <addaction name="Quiz"/>
+    <addaction name="BtnHistory"/>
+    <addaction name="BtnQuiz"/>
    </widget>
    <addaction name="menu"/>
   </widget>
-  <action name="History">
+  <action name="BtnHistory">
    <property name="checkable">
     <bool>false</bool>
    </property>
@@ -219,7 +219,7 @@
     <string>History</string>
    </property>
   </action>
-  <action name="Quiz">
+  <action name="BtnQuiz">
    <property name="text">
     <string>Quiz</string>
    </property>
