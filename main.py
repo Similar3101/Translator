@@ -10,7 +10,8 @@ import sqlite3
 import random
 
 
-con = sqlite3.connect('History_Of_Translate.db')
+con = sqlite3.connect('History_Of_Translate.db')  # подключение к базе данных
+language = {b: a for a, b in constants.LANGUAGES.items()}  # все рабочие языки на переводчике
 
 
 class MainTranslator(QMainWindow):
@@ -123,20 +124,18 @@ class MainTranslator(QMainWindow):
         self.BtnHistory.triggered.connect(self.to_history)
         self.BtnQuiz.triggered.connect(self.to_quiz)
         # здесь некоторые аргументы
-        self.language = {b: a for a, b in constants.LANGUAGES.items()}  # все рабочие языки на переводчике
         self.num = 0  # используется только для индексации в истории переводов
         self.cun = con.cursor()  # для отправления информации в SQL таблицу
+        self.language = language
 
     def translate(self):
         try:
             from_lang, to_lang = self.choice_from_lang.text(), self.choice_to_lang.text()
-            cut_from_lang, cut_to_lang = self.language[from_lang], self.language[to_lang]
-            print(cut_from_lang, cut_to_lang)
+            cut_from_lang, cut_to_lang = language[from_lang], language[to_lang]
             text_from_lang = self.text_from_lang.toPlainText()
             t = Translator()
             t = t.translate(text_from_lang, src=cut_from_lang, dest=cut_to_lang)
             self.text_to_lang.setPlainText(t.text)
-            print(self.btnSaving.checkState())
             if self.btnSaving.checkState():
                 self.num += 1
                 self.cun.execute(f'''
@@ -150,14 +149,14 @@ VALUES {int(self.num), str(cut_from_lang), str(text_from_lang), str(cut_to_lang)
         try:
             ctl = self.choice_to_lang.text()
             display_lang = self.language.keys()
-            language, ok_pressed = QInputDialog.getItem(self,
-                                                        'выбор языка',
-                                                        'какой язык?',
-                                                        display_lang,
-                                                        list(display_lang).index(ctl),
-                                                        False)
+            lang, ok_pressed = QInputDialog.getItem(self,
+                                                    'выбор языка',
+                                                    'какой язык?',
+                                                    display_lang,
+                                                    list(display_lang).index(ctl),
+                                                    False)
             if ok_pressed:
-                self.sender().setText(language)
+                self.sender().setText(lang)
         except Exception as e:
             print(e)
 
@@ -275,16 +274,15 @@ class Quiz(QMainWindow):
         try:
             super(Quiz, self).__init__(parent)
             self.resize(800, 400)
-            sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
-            sizePolicy.setHorizontalStretch(0)
-            sizePolicy.setVerticalStretch(0)
-            sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
-            self.setSizePolicy(sizePolicy)
+            self.sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+            self.sizePolicy.setHorizontalStretch(0)
+            self.sizePolicy.setVerticalStretch(0)
+            self.sizePolicy.setHeightForWidth(self.sizePolicy.hasHeightForWidth())
+            self.setSizePolicy(self.sizePolicy)
             font = QFont()
             font.setPointSize(9)
             self.setFont(font)
             self.centralwidget = QWidget(self)
-            self.centralwidget.setObjectName("centralwidget")
             self.Start_Quiz = QPushButton(self.centralwidget)
             self.Start_Quiz.setGeometry(QRect(330, 90, 150, 50))
             font = QFont()
@@ -319,27 +317,27 @@ class Quiz(QMainWindow):
             font = QFont()
             font.setPointSize(10)
             self.label_2.setFont(font)
-            self.label_2.setObjectName("label_2")
+            # self.label_2.setObjectName("label_2")
             self.label_3 = QLabel(self.centralwidget)
             self.label_3.setGeometry(QRect(50, 260, 130, 40))
             font = QFont()
             font.setPointSize(10)
             self.label_3.setFont(font)
-            self.label_3.setObjectName("label_3")
+            # self.label_3.setObjectName("label_3")
             self.ToTranslate = QLabel(self.centralwidget)
             self.ToTranslate.setGeometry(QRect(60, 220, 101, 21))
             font = QFont()
             font.setPointSize(10)
             self.ToTranslate.setFont(font)
             self.ToTranslate.setText("")
-            self.ToTranslate.setObjectName("ToTranslate")
+            # self.ToTranslate.setObjectName("ToTranslate")
             self.FromTranslate = QLabel(self.centralwidget)
             self.FromTranslate.setGeometry(QRect(60, 310, 101, 21))
             font = QFont()
             font.setPointSize(10)
             self.FromTranslate.setFont(font)
             self.FromTranslate.setText("")
-            self.FromTranslate.setObjectName("FromTranslate")
+            # self.FromTranslate.setObjectName("FromTranslate")
             self.End_Quiz = QPushButton(self.centralwidget)
             self.End_Quiz.setGeometry(QRect(330, 90, 150, 50))
             font = QFont()
@@ -351,7 +349,7 @@ class Quiz(QMainWindow):
             font.setStrikeOut(False)
             font.setKerning(True)
             self.End_Quiz.setFont(font)
-            self.End_Quiz.setObjectName("End_Quiz")
+            # self.End_Quiz.setObjectName("End_Quiz")
             self.ok = QPushButton(self.centralwidget)
             self.ok.setGeometry(QRect(310, 10, 150, 50))
             font = QFont()
@@ -363,7 +361,7 @@ class Quiz(QMainWindow):
             font.setStrikeOut(False)
             font.setKerning(True)
             self.ok.setFont(font)
-            self.ok.setObjectName("ok")
+            # self.ok.setObjectName("ok")
             self.jpg = QLabel(self.centralwidget)
             self.jpg.setGeometry(QRect(0, 0, 800, 370))
             self.jpg.setText("")
@@ -372,14 +370,14 @@ class Quiz(QMainWindow):
             self.jpg.setWordWrap(False)
             self.jpg.setIndent(1)
             self.jpg.setOpenExternalLinks(False)
-            self.jpg.setObjectName("jpg")
+            # self.jpg.setObjectName("jpg")
             self.Result = QLineEdit(self.centralwidget)
             self.Result.setGeometry(QRect(200, 250, 400, 60))
             font = QFont()
             font.setPointSize(14)
             self.Result.setFont(font)
             self.Result.setAlignment(Qt.AlignCenter)
-            self.Result.setObjectName("Result")
+            # self.Result.setObjectName("Result")
             self.jpg.raise_()
             self.Start_Quiz.raise_()
             self.TranslatableText.raise_()
@@ -394,14 +392,14 @@ class Quiz(QMainWindow):
             self.setCentralWidget(self.centralwidget)
             self.menubar = QMenuBar(self)
             self.menubar.setGeometry(QRect(0, 0, 800, 26))
-            self.menubar.setObjectName("menubar")
+            # self.menubar.setObjectName("menubar")
             self.menu = QMenu(self.menubar)
-            self.menu.setObjectName("menu")
+            # self.menu.setObjectName("menu")
             self.setMenuBar(self.menubar)
             self.ActionBack = QAction(self)
-            self.ActionBack.setObjectName("ActionBack")
+            # self.ActionBack.setObjectName("ActionBack")
             self.actionHistory = QAction(self)
-            self.actionHistory.setObjectName("actionHistory")
+            # self.actionHistory.setObjectName("actionHistory")
             self.menu.addAction(self.ActionBack)
             self.menubar.addAction(self.menu.menuAction())
             self.parent = parent
@@ -454,15 +452,20 @@ SELECT DISTINCT to_Lang, from_Lang FROM History;''').fetchall()
             if ok_pressed:
                 self.Start_Quiz.show()
                 self.name = self.name.split(' - ')
-                self.ToTranslate.setText(self.name[0])
-                self.FromTranslate.setText(self.name[1])
+                keys, index_of_value = list(language.keys()), list(language.values())
+                name = [keys[index_of_value.index(a)] for a in self.name]
+                self.ToTranslate.setText(name[0])
+                self.FromTranslate.setText(name[1])
         else:
             error = QMessageBox()
-            error.setText('для начала нужно что-нибудь перевести')
+            error.setText('''Для начала нужно что-нибудь перевести
+Вы вернётесь на главное окно''')
             error.setWindowTitle('Error')
             error.setIcon(QMessageBox.Warning)
             error.setStandardButtons(QMessageBox.Ok)
             error.exec_()
+            self.parent.show()
+            self.hide()
 
     def start_of_quiz(self):
         try:
